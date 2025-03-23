@@ -1,13 +1,17 @@
 import './App.css'
 import { BrowserRouter, useRoutes } from 'react-router-dom'
 import { routes } from './routes';
+import { APIProvider } from '@vis.gl/react-google-maps';
 
 function App() {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   return (
-    <BrowserRouter>
-      <AppRoutes/>
-    </BrowserRouter>
+    <APIProvider apiKey={apiKey}>
+      <BrowserRouter>
+        <AppRoutes/>
+      </BrowserRouter>
+    </APIProvider>
   )
 }
 
