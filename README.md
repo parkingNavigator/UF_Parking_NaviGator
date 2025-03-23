@@ -30,6 +30,17 @@ parking spaces based on user preferences, permit types, and real-time availabili
    ```bash
    npm run dev
    ```
+
+### Adding API key into .env file in the directory
+   ```bash
+   .env
+
+   VITE_GOOGLE_MAPS_API_KEY=<your API key here>
+   ```
+#### Install Google map library
+   ```bash
+   npm install @vis.gl/react-google-maps
+   ```
 ## Team Members
 
 | Name                     
