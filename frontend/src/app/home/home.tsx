@@ -3,6 +3,7 @@ import { AppBar, Autocomplete, Box, Chip, Fab, Grid2, IconButton, Paper, TextFie
 import { InfoWindow, Map, Marker } from "@vis.gl/react-google-maps";
 import campusParkingData from "../../data/parkingData";
 import { useState } from "react";
+import { getNearestParkingWalkingUsingService } from "../../utils/getNearestParking";
 
 const backgroundStyle = {
     position: "fixed",
@@ -35,11 +36,44 @@ const initialLocation = {lat: 29.646762680098067, lng: -82.35300532101999};
 
 function Home () {
     const [location, setLocation] = useState();
+    const [destination, setDestination] = useState<any>(null); // user clicks on map
+    const [nearestParking, setNearestParking] = useState<any>(null);
+    const currentPermit = "Green";
+
     const parkingData = campusParkingData;
 
     const handleChange = (event: any, newValue: any) => {
         setLocation(newValue);
     }
+
+    // When the user clicks the map, store that point as the destination,
+    // then compute the nearest parking.
+    const handleMapClick = (e: any) => {
+        console.log("Map click event:", e);
+        let latLng;
+        if (e.latLng) {
+            latLng = e.latLng;
+        } else if (e.detail && e.detail.latLng) {
+            latLng = e.detail.latLng;
+        } else if (e.lngLat) {
+            latLng = e.lngLat;
+        }
+        
+        if (!latLng) {
+            console.error("No coordinate property found on the event", e);
+            return;
+        }
+        
+        const lat = typeof latLng.lat === "function" ? latLng.lat() : latLng.lat;
+        const lng = typeof latLng.lng === "function" ? latLng.lng() : latLng.lng;
+        const clickedPoint = { lat, lng };
+        setDestination(clickedPoint);
+
+        getNearestParkingWalkingUsingService(clickedPoint, parkingData, currentPermit, (nearest) => {
+            setNearestParking(nearest);
+            console.log("Nearest parking location based on walking distance:", nearest);
+        });
+    };
 
     return (
         <Box sx={backgroundStyle}>
@@ -58,7 +92,18 @@ function Home () {
                     style={{width: '100vw', height: '100vh'}}
                     defaultCenter={location? location : initialLocation}
                     defaultZoom={16}
+                    onClick={handleMapClick}  
+
                 >
+                    {/* Optionally, render markers for destination, parking, etc. */}
+                    {destination && <Marker position={destination} label="Dest" />}
+                    {nearestParking && (
+                        <Marker
+                        position={nearestParking.position}
+                        label="Parking"
+                        icon="http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+                        />
+                    )}
                     {/* show selected location deatil */}
                     {location && renderLocationDetail(location)}
                 </Map>
@@ -121,5 +166,50 @@ const renderLocationDetail = (location: any) => {
        
     )
 }
+
+// Simple Haversine formula or squared-distance approach
+// to find nearest parking by "straight line" distance.
+function getNearestParking(destination: { lat: number; lng: number }, spots: any[]) {
+    if (!destination || !spots.length) return null;
+  
+    let minDistance = Infinity;
+    let nearest = null;
+  
+    for (const spot of spots) {
+      const d = distanceBetween(
+        destination.lat,
+        destination.lng,
+        spot.position.lat,
+        spot.position.lng
+      );
+      if (d < minDistance) {
+        minDistance = d;
+        nearest = spot;
+      }
+    }
+    return nearest;
+  }
+  
+  // Basic helper: approximate distance in meters using the Haversine formula
+  function distanceBetween(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const R = 6371e3; // Earth radius in meters
+    const toRad = (x: number) => (x * Math.PI) / 180;
+    const φ1 = toRad(lat1);
+    const φ2 = toRad(lat2);
+    const Δφ = toRad(lat2 - lat1);
+    const Δλ = toRad(lng2 - lng1);
+  
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) *
+        Math.cos(φ2) *
+        Math.sin(Δλ / 2) *
+        Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  
+    return R * c; // in meters
+  }
+
+
 
 export default Home;
