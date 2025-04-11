@@ -40,6 +40,13 @@ const searchBarStyle = {
     borderRadius: '1.5rem'
 }
 
+const UF_CAMPUS_BOUNDS = {
+    north: 29.66,
+    south: 29.62,
+    west: -82.38,
+    east: -82.33,
+};
+
 const initialLocation = {lat: 29.646762680098067, lng: -82.35300532101999};
 
 
@@ -88,6 +95,7 @@ function Home () {
         }, 300)
     ).current;
 
+
     // Handle select permit type
     const handleSetPermit = (type: string) => setPermitType(type);
 
@@ -124,6 +132,10 @@ function Home () {
                     defaultCenter={initialLocation}
                     center={location && location}
                     defaultZoom={16}
+                    restriction={{
+                        latLngBounds: UF_CAMPUS_BOUNDS,
+                        strictBounds: false,
+                    }}
                 >
                     {/* Popup detail of selected location */}
                     {location && selectedPlace && <LocationDetail {...selectedPlace}/>}
@@ -273,10 +285,10 @@ const fetchPlacesFromInput = async (
     const request: google.maps.places.AutocompleteRequest = {
       input: value,
       locationBias: {
-        west: -122.44,
-        north: 37.8,
-        east: -122.39,
-        south: 37.78,
+        west: -82.373,
+        north: 29.653,
+        east: -82.338,
+        south: 29.626,
       },
       ...(sessionToken instanceof google.maps.places.AutocompleteSessionToken && {
         sessionToken,
@@ -306,9 +318,21 @@ const fetchPlacesFromInput = async (
         } else {
             return undefined;
         }
-    }))
+    }));
 
-    return suggestCollection.filter((suggest): suggest is PlaceData => suggest !== undefined);
+    return (
+        suggestCollection
+        .filter((suggest): suggest is PlaceData => suggest !== undefined)
+        .filter((suggest) => {
+            const lat = suggest.location?.lat();
+            const lng = suggest.location?.lng();
+            if (lat !== undefined && lng !== undefined)
+                if (lng <= -82.338 && lng >= -82.373 && lat <= 29.653 && lat >= 29.626)
+                    return suggest;
+        })
+    );
+}
+
 const debounce = (callback: Function , delay: number) => {
 
     let timeoutId: string | number | NodeJS.Timeout | undefined;
