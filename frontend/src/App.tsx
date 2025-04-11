@@ -7,7 +7,7 @@ function App() {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   return (
-    <APIProvider apiKey={apiKey}>
+    <APIProvider apiKey={apiKey} libraries={['places']}>
       <BrowserRouter>
         <AppRoutes/>
       </BrowserRouter>
