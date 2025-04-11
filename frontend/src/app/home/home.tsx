@@ -68,20 +68,25 @@ function Home () {
         const value = e.target.value;
         setSearchValue(value); 
 
-        if (value.length === 0) {
+        debouncedFetchSuggestions(value);
+    };
+
+    // Debounce search 
+    const debouncedFetchSuggestions = useRef(
+        debounce(async (value: string) => {
+          if (!value.trim()) {
             setSuggestions([]);
             return;
-        }
+          }
       
-        try {
-            // Fetch predications based on input value
-            const suggestCollection = await fetchPlacesFromInput(value, sessionTokenRef.current);
-            setSuggestions(suggestCollection);
-            
-        } catch (error){
+          try {
+            const suggestions = await fetchPlacesFromInput(value, sessionTokenRef.current);
+            setSuggestions(suggestions);
+          } catch (error) {
             console.error("Autocomplete fetch failed", error);
-        }
-    };
+          }
+        }, 300)
+    ).current;
 
     // Handle select permit type
     const handleSetPermit = (type: string) => setPermitType(type);
@@ -304,6 +309,18 @@ const fetchPlacesFromInput = async (
     }))
 
     return suggestCollection.filter((suggest): suggest is PlaceData => suggest !== undefined);
+const debounce = (callback: Function , delay: number) => {
+
+    let timeoutId: string | number | NodeJS.Timeout | undefined;
+
+    return (...args: any[]) => {
+        
+        if (timeoutId) clearTimeout(timeoutId);
+
+        timeoutId = setTimeout(() => {
+            callback(...args);
+        }, delay);
+    }
 }
 
 
