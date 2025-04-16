@@ -38,6 +38,7 @@ import { PlaceData } from "../../types";
 import SuggestionsDropDownMenu from "../../components/SuggestonsDropDownMenu";
 import parkingPolygons from "../../data/parkingArea";
 import { Switch, FormControlLabel } from "@mui/material";
+import { Button } from "@mui/material";
 
 // (Optional) Additional mapping from permit to color for styling chips.
 const permitColorMapping: { [key: string]: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" } = {
@@ -258,14 +259,33 @@ function Home() {
   
           }}
         >
-          {destination && <Marker position={destination} label="Dest" />}
-          {nearestParking && (
-            <Marker
-              position={nearestParking.position}
-              label="Parking"
-              icon="http://maps.google.com/mapfiles/ms/icons/green-dot.png"
-            />
-          )}
+          {campusParkingData
+          .filter((lot) =>
+            Array.isArray(lot.permits) &&
+            lot.permits.some(
+              (p) => p.trim().toLowerCase() === permitType.trim().toLowerCase()
+            ) &&
+            lot.position &&
+            typeof lot.position.lat === "number" &&
+            typeof lot.position.lng === "number"
+          )
+          .map((lot, index) => {
+            const isRecommended =
+              nearestParking && nearestParking.name === lot.name;
+
+            return (
+              <Marker
+                key={index}
+                position={lot.position}
+                label={isRecommended ? "Recommended" : lot.name}
+                icon={
+                  isRecommended
+                    ? "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+                    : "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                }
+              />
+            );
+          })}
           {location && selectedPlace && <LocationDetail {...selectedPlace} />}
           {directions && (
             <InfoWindow position={destination!} pixelOffset={[0, -40]}>
@@ -296,6 +316,31 @@ function Home() {
                 onItemClick={handleItemClick}
               />
             )}
+          </Grid>
+          <Grid item xs={2}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              disabled={!selectedPlace || !selectedPlace.location}
+              onClick={() => {
+                const loc = selectedPlace?.location;
+                if (!loc) return;
+                const clickedPoint = {
+                  lat: typeof loc.lat === "function" ? loc.lat() : loc.lat,
+                  lng: typeof loc.lng === "function" ? loc.lng() : loc.lng,
+                };
+                setDestination(clickedPoint);
+                getNearestParkingWalkingUsingService(clickedPoint, campusParkingData, permitType, (nearest) => {
+                  setNearestParking(nearest);
+                  if (map && nearest) {
+                    traceWalkingRoute(map, nearest.position, clickedPoint);
+                  }
+                });
+              }}
+            >
+              Set as Destination
+            </Button>
           </Grid>
           <Grid item xs={4}>
             <PermitSelector
@@ -412,15 +457,10 @@ const fetchPlacesFromInput = async (
     // Construct search request
     const request: google.maps.places.AutocompleteRequest = {
       input: value,
-      locationBias: {
-        rectangle: {
-          west: -82.373,
-          north: 29.653,
-          east: -82.338,
-          south: 29.626,
-        },
-      },
-      strictBounds: true,
+      locationBias: new google.maps.LatLngBounds(
+        new google.maps.LatLng(29.626, -82.373),
+        new google.maps.LatLng(29.653, -82.338)
+      ),
       ...(sessionToken instanceof google.maps.places.AutocompleteSessionToken && {
         sessionToken,
       }),

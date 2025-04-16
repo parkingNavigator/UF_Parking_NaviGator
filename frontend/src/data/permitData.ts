@@ -56,15 +56,15 @@ export const PERMIT_TYPES = [
         text: "Silver"
     },
     {
-        type: "redOne",
+        type: "Red One",
         text: "Red One"
     },
     {
-        type: "medStdnt",
+        type: "Medical Resident",
         text: "Medical Resident"
     },
     {
-        type: "staff",
+        type: "Staff Commuter",
         text: "Staff Commuter"
     },
     {
