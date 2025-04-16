@@ -6,15 +6,26 @@ export interface ParkingPolygon {
   
   const parkingPolygons: ParkingPolygon[] = [
     {
-      name: "Garage 7",
-      coordinates: [
-        { lat: 29.6509, lng: -82.3520 },
-        { lat: 29.6509, lng: -82.3512 },
-        { lat: 29.6505, lng: -82.3512 },
-        { lat: 29.6505, lng: -82.3520 }
+      "name": "Garage 7",
+      "coordinates": [
+        {
+          "lat": 29.6508326859159,
+          "lng": -82.3520395347833
+        },
+        {
+          "lat": 29.650825290550483,
+          "lng": -82.35096051125629
+        },
+        {
+          "lat": 29.650354944192834,
+          "lng": -82.3509741266951
+        },
+        {
+          "lat": 29.650374172231682,
+          "lng": -82.35204464057284
+        }
       ]
-    },
-    // ... more polygon data
+    }
   ];
   
   // Add the default export:

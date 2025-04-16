@@ -37,6 +37,7 @@ import googlePlaceService from "../../services/googlePlaceService";
 import { PlaceData } from "../../types";
 import SuggestionsDropDownMenu from "../../components/SuggestonsDropDownMenu";
 import parkingPolygons from "../../data/parkingArea";
+import { Switch, FormControlLabel } from "@mui/material";
 
 // (Optional) Additional mapping from permit to color for styling chips.
 const permitColorMapping: { [key: string]: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" } = {
@@ -118,6 +119,7 @@ function Home() {
   const [suggestions, setSuggestions] = useState<(PlaceData | undefined)[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | undefined>(undefined);
   const [location, setLocation] = useState<google.maps.LatLng | null>(null);
+  const [selectingLocation, setSelectingLocation] = useState<boolean>(false);
 
   const map = useMap();
 
@@ -209,16 +211,52 @@ function Home() {
             UF Parking Navigator
           </Typography>
           <Grid container spacing={2} sx={{ flexGrow: 1 }} />
+          
         </Toolbar>
       </AppBar>
-
+  
+      {/* Instruction message */}
+      {selectingLocation && (
+        <Box
+          position="absolute"
+          top="15vh"
+          left="2rem"
+          bgcolor="white"
+          color="black"
+          p={2}
+          borderRadius={2}
+          boxShadow={3}
+          zIndex={2000}
+        >
+          <Typography variant="body1">Click on the map to select a destination</Typography>
+        </Box>
+      )}
+  
       {/* Map */}
       <Box width="100%">
         <Map
           style={{ width: "100vw", height: "100vh" }}
           defaultCenter={location ? location : initialLocation}
           defaultZoom={16}
-          onClick={handleMapClick}
+          onClick={(e) => {
+            if (!selectingLocation) return;
+            let latLng;
+            if (e.latLng) latLng = e.latLng;
+            else if (e.detail?.latLng) latLng = e.detail.latLng;
+            else if (e.lngLat) latLng = e.lngLat;
+            if (!latLng) return;
+  
+            const lat = typeof latLng.lat === "function" ? latLng.lat() : latLng.lat;
+            const lng = typeof latLng.lng === "function" ? latLng.lng() : latLng.lng;
+            const clickedPoint = { lat, lng };
+            setDestination(clickedPoint);
+  
+            getNearestParkingWalkingUsingService(clickedPoint, campusParkingData, permitType, (nearest) => {
+              setNearestParking(nearest);
+              if (map && nearest) traceWalkingRoute(map, nearest.position, clickedPoint);
+            });
+  
+          }}
         >
           {destination && <Marker position={destination} label="Dest" />}
           {nearestParking && (
@@ -236,24 +274,9 @@ function Home() {
               </Box>
             </InfoWindow>
           )}
-          {/* Render parking area polygons */}
-          {parkingPolygons.map((lot, index) => (
-            <ParkingPolygon
-              key={index}
-              map={map}
-              paths={lot.coordinates}
-              options={{
-                fillColor: getColorForParkingLot(lot.name),
-                strokeColor: getColorForParkingLot(lot.name),
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillOpacity: 0.35
-              }}
-            />
-          ))}
         </Map>
       </Box>
-
+  
       {/* Search and Permit Selection Bar */}
       <Paper variant="elevation" elevation={2} sx={searchBarStyle}>
         <Grid container spacing={2} width="100%" display="flex" alignItems="center" justifyContent="flex-start">
@@ -281,12 +304,22 @@ function Home() {
               onSelectPermit={(type: string) => setPermitType(type)}
             />
           </Grid>
+            <FormControlLabel
+            control={
+              <Switch
+                checked={selectingLocation}
+                onChange={(e) => setSelectingLocation(e.target.checked)}
+                color="secondary"
+              />
+            }
+            label="Select Location"
+            labelPlacement="start"
+          />
         </Grid>
       </Paper>
     </Box>
   );
 }
-
 // Popup detail component
 function LocationDetail(selectedPlace: PlaceData) {
   const { name, location, address, rating, websiteURI } = selectedPlace || {};
@@ -322,7 +355,7 @@ function LocationDetail(selectedPlace: PlaceData) {
       </InfoWindow>
     </>
   );
-function LocationDetail (selectedPlace: PlaceData | undefined) {
+
 }
 
 function PermitSelector(props: any) {
@@ -380,11 +413,14 @@ const fetchPlacesFromInput = async (
     const request: google.maps.places.AutocompleteRequest = {
       input: value,
       locationBias: {
-        west: -82.373,
-        north: 29.653,
-        east: -82.338,
-        south: 29.626,
+        rectangle: {
+          west: -82.373,
+          north: 29.653,
+          east: -82.338,
+          south: 29.626,
+        },
       },
+      strictBounds: true,
       ...(sessionToken instanceof google.maps.places.AutocompleteSessionToken && {
         sessionToken,
       }),

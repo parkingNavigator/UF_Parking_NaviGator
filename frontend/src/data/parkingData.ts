@@ -9,8 +9,6 @@ export interface ParkingData {
   };
   permits: string[];
   hasCharging: boolean;
-  notes: string;
-  permitHours: string;
 }
 
 const campusParkingData: ParkingData[] = [
@@ -1615,6 +1613,490 @@ const campusParkingData: ParkingData[] = [
       "Visitor"
     ],
     "hasCharging": false
+  },
+  {
+    "name": "Maguire Village Parking",
+    "position": {
+      "lat": 29.64083338545468,
+      "lng": -82.3708722343045
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 123
+  },
+  {
+    "name": "University Village South - BR",
+    "position": {
+      "lat": 29.638673389632615,
+      "lng": -82.37136235022443
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 124
+  },
+  {
+    "name": "Bledsoe Drive - AD",
+    "position": {
+      "lat": 29.639575481689317,
+      "lng": -82.36992659888251
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 125
+  },
+  {
+    "name": "Racing Lab",
+    "position": {
+      "lat": 29.64018188348437,
+      "lng": -82.37388788884792
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 126
+  },
+  {
+    "name": "Sports Medicine - SE",
+    "position": {
+      "lat": 29.637124779390742,
+      "lng": -82.37514489212988
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 127
+  },
+  {
+    "name": "Sports Medicine - SW",
+    "position": {
+      "lat": 29.63712979111304,
+      "lng": -82.37628657395173
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 128
+  },
+  {
+    "name": "Sports Medicine - NW",
+    "position": {
+      "lat": 29.637746231008656,
+      "lng": -82.37720337904693
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 129
+  },
+  {
+    "name": "Cultural Plaza - AD2",
+    "position": {
+      "lat": 29.637378920500616,
+      "lng": -82.37121693725553
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 130
+  },
+  {
+    "name": "Cultural Plaza - AD1",
+    "position": {
+      "lat": 29.63721608659846,
+      "lng": -82.36877134587763
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 131
+  },
+  {
+    "name": "North Lacrosse Parking",
+    "position": {
+      "lat": 29.63743613235019,
+      "lng": -82.36605739753382
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 132
+  },
+  {
+    "name": "Florida Ballpark - AD",
+    "position": {
+      "lat": 29.637154473699127,
+      "lng": -82.36239660531704
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 133
+  },
+  {
+    "name": "Entomology and Nematology - AD",
+    "position": {
+      "lat": 29.635284064213508,
+      "lng": -82.3669941146795
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 134
+  },
+  {
+    "name": "Mehrhof Hall",
+    "position": {
+      "lat": 29.63389773828888,
+      "lng": -82.36107001120386
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 135
+  },
+  {
+    "name": "Surge Area - AP",
+    "position": {
+      "lat": 29.63177640265801,
+      "lng": -82.36784981847752
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 136
+  },
+  {
+    "name": "Surge Area - AD",
+    "position": {
+      "lat": 29.631820414223903,
+      "lng": -82.36683208791409
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 137
+  },
+  {
+    "name": "Swine Unit Parking",
+    "position": {
+      "lat": 29.630474208176597,
+      "lng": -82.36089325080788
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 138
+  },
+  {
+    "name": "Organic Gardens Parking",
+    "position": {
+      "lat": 29.629277070712718,
+      "lng": -82.35954640333148
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 139
+  },
+  {
+    "name": "Solar Pond Parking",
+    "position": {
+      "lat": 29.62788185947433,
+      "lng": -82.36060464060985
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 140
+  },
+  {
+    "name": "Breeding & Genetics Parking",
+    "position": {
+      "lat": 29.633874827747842,
+      "lng": -82.35570973083736
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 141
+  },
+  {
+    "name": "Triangle - AD",
+    "position": {
+      "lat": 29.635297797188084,
+      "lng": -82.35197651079605
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 142
+  },
+  {
+    "name": "Vet Med West - AD",
+    "position": {
+      "lat": 29.634318122577394,
+      "lng": -82.35160930882932
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 143
+  },
+  {
+    "name": "Animal Nutrition - AD",
+    "position": {
+      "lat": 29.630716241564954,
+      "lng": -82.3522404384988
+    },
+    "permits": [
+      "Green",
+      "Orange",
+      "Blue",
+      "Red",
+      "Brown",
+      "Gold",
+      "Silver",
+      "Red One",
+      "Medical Resident",
+      "Staff Commuter",
+      "Visitor"
+    ],
+    "hasCharging": false,
+    "id": 144
   }
 ]
 export default campusParkingData;
