@@ -6,53 +6,53 @@ export const permitText: Record<string, string> = {
     "brown": "Brown",
     "gold": "Gold",
     "silver": "Silver",
-    "medStdnt": "Medical Resident",
-    "redOne": "Red One",
-    "staff": "Staff Commuter",
+    "Medical Resident": "Medical Resident",
+    "Red One": "Red One",
+    "Staff Commuter": "Staff Commuter",
     "visitor": "Visitor"
 };
 
 export const permitColors: Record<string, string> = {
-    "green": "green",
-    "orange": "orange",
-    "blue": "blue",
-    "red": "red",
-    "brown": "brown",
-    "gold": "gold",
-    "silver": "silver",
-    "medStdnt": "gray",
-    "redOne": "red",
-    "staff": "#14213d",
+    "Green": "green",
+    "Orange": "orange",
+    "Blue": "blue",
+    "Red": "red",
+    "Brown": "brown",
+    "Gold": "gold",
+    "Silver": "silver",
+    "Medical Resident": "gray",
+    "Red One": "red",
+    "Staff Commuter": "#14213d",
     "visitor": "black"
 };
 
 export const PERMIT_TYPES = [
     {
-        type: "green",
+        type: "Green",
         text: "Green",
     },
     {
-        type: "orange",
+        type: "Orange",
         text: "Orange"
     },
     {
-        type: "blue",
+        type: "Blue",
         text: "Blue"
     },
     {
-        type: "red",
+        type: "Red",
         text: "Red"
     },
     {
-        type: "brown",
+        type: "Brown",
         text: "Brown"
     },
     {
-        type: "gold",
+        type: "Gold",
         text: "Gold"
     },
     {
-        type: "silver",
+        type: "Silver",
         text: "Silver"
     },
     {

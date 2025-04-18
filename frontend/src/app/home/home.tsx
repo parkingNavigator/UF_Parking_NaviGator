@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   AppBar,
-  Autocomplete,
   Box,
   Chip,
   Divider,
@@ -9,21 +8,16 @@ import {
   Menu,
   MenuItem,
   Paper,
-  Rating,
   TextField,
   Toolbar,
-  Typography,
-  Select
+  Typography
 } from "@mui/material";
 import {
   Menu as MenuIcon,
-  NavigationRounded,
   LocationOn,
   Language as LanguageIcon,
-  ThumbsUpDown as ThumbsUpDownIcon
 } from "@mui/icons-material";
 import {
-  APIProvider,
   InfoWindow,
   Map,
   useMap,
@@ -32,13 +26,14 @@ import {
 import campusParkingData from "../../data/parkingData";
 import { getNearestParkingWalkingUsingService } from "../../utils/getNearestParking";
 import Grid from "@mui/material/Grid2";
-import { PERMIT_TYPES, permitColors, permitText } from "../../data/permitData";
+import { PERMIT_TYPES, permitColors } from "../../data/permitData";
 import googlePlaceService from "../../services/googlePlaceService";
 import { PlaceData } from "../../types";
 import SuggestionsDropDownMenu from "../../components/SuggestonsDropDownMenu";
-import parkingPolygons from "../../data/parkingArea";
 import { Switch, FormControlLabel } from "@mui/material";
 import { Button } from "@mui/material";
+import ParkingLotInfo from "../../components/ParkingLotInfo";
+import { useSnackbar } from "../../hooks/useSnackbar";
 
 // (Optional) Additional mapping from permit to color for styling chips.
 const permitColorMapping: { [key: string]: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" } = {
@@ -66,7 +61,7 @@ const searchBarStyle = {
   justifyContent: "flex-start",
   alignItems: "center",
   gap: "1rem",
-  width: "40vw",
+  width: '50vw',
   height: "5vh",
   padding: "1.2rem 1rem 1.2rem 1rem",
   zIndex: 1000,
@@ -75,40 +70,6 @@ const searchBarStyle = {
 };
 
 const initialLocation = { lat: 29.646762680098067, lng: -82.35300532101999 };
-
-/**
- * Custom component to render a Google Maps polygon.
- * This component creates a polygon using the google.maps.Polygon API,
- * assigns it to the provided map, and cleans it up on unmount.
- */
-function ParkingPolygon({ map, paths, options }: { map: google.maps.Map | null, paths: { lat: number; lng: number }[], options: google.maps.PolygonOptions }) {
-  useEffect(() => {
-    if (!map || !window.google || !google.maps) return;
-
-    // Create a new google.maps.Polygon with the given options.
-    const polygon = new google.maps.Polygon({
-      paths,
-      ...options,
-      map
-    });
-
-    // Clean up the polygon when the component unmounts or map/paths/options change.
-    return () => {
-      polygon.setMap(null);
-    };
-  }, [map, paths, options]);
-
-  return null;
-}
-
-// Example helper: Returns a fill color based on the lot name.
-// Modify this function to meet your design (for example, lots for Green permits painted green).
-function getColorForParkingLot(name: string): string {
-  if (name.toLowerCase().includes("green")) {
-    return "#00FF00";
-  }
-  return "#808080";
-}
 
 function Home() {
   // State variables for parking and map interaction.
@@ -121,30 +82,26 @@ function Home() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | undefined>(undefined);
   const [location, setLocation] = useState<google.maps.LatLng | null>(null);
   const [selectingLocation, setSelectingLocation] = useState<boolean>(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [hoveredParkLot, setHoveredParkLot] = useState<number | null>();
 
   const map = useMap();
+
 
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchValue(value);
-    if (value.length === 0) {
-      setSuggestions([]);
-      return;
-    }
-    try {
-      const suggestCollection = await fetchPlacesFromInput(value);
-      setSuggestions(suggestCollection);
-    } catch (error) {
-      console.error("Autocomplete fetch failed", error);
-    }
+    debouncedFetchSuggestions(value);
   };
 
   const handleItemClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
     const selected = suggestions[index];
     setSelectedPlace(selected);
+    setSuggestions([]);
+    setDetailOpen(true);
     setLocation(
       selected?.location
-        ? new google.maps.LatLng(selected.location.lat, selected.location.lng)
+        ? new google.maps.LatLng(selected.location.lat(), selected.location.lng())
         : null
     );
   };
@@ -173,31 +130,42 @@ function Home() {
     );
   };
 
-  const handleMapClick = (e: any) => {
-    let latLng;
-    if (e.latLng) {
-      latLng = e.latLng;
-    } else if (e.detail && e.detail.latLng) {
-      latLng = e.detail.latLng;
-    } else if (e.lngLat) {
-      latLng = e.lngLat;
-    }
-    if (!latLng) {
-      console.error("No coordinate property found on the event", e);
-      return;
-    }
-    const lat = typeof latLng.lat === "function" ? latLng.lat() : latLng.lat;
-    const lng = typeof latLng.lng === "function" ? latLng.lng() : latLng.lng;
-    const clickedPoint = { lat, lng };
-    setDestination(clickedPoint);
+  // Debounce search 
+  const debouncedFetchSuggestions = useRef(
+    debounce(async (value: string) => {
+      if (!value.trim()) {
+        setSuggestions([]);
+        return;
+      }
+  
+      try {
+        const suggestions = await fetchPlacesFromInput(value);
+        setSuggestions(suggestions);
+      } catch (error) {
+        console.error("Autocomplete fetch failed", error);
+      }
+    }, 300)
+  ).current;
 
-    getNearestParkingWalkingUsingService(clickedPoint, campusParkingData, permitType, (nearest) => {
+  const handleSetDestination = () => {
+    const loc = selectedPlace?.location;
+    if (!loc) return;
+
+    const clickedPoint = {
+      lat: typeof loc.lat === "function" ? loc.lat() : loc.lat,
+      lng: typeof loc.lng === "function" ? loc.lng() : loc.lng,
+    };
+
+    setDestination(clickedPoint);
+    setDetailOpen(false);
+    getNearestParkingWalkingUsingService(clickedPoint, campusParkingData, permitType, (nearest: { position: { lat: number; lng: number; }; }) => {
       setNearestParking(nearest);
       if (map && nearest) {
         traceWalkingRoute(map, nearest.position, clickedPoint);
       }
-    });
+    })
   };
+
 
   return (
     <Box sx={backgroundStyle}>
@@ -237,7 +205,7 @@ function Home() {
       <Box width="100%">
         <Map
           style={{ width: "100vw", height: "100vh" }}
-          defaultCenter={location ? location : initialLocation}
+          defaultCenter={location? location : initialLocation}
           defaultZoom={16}
           onClick={(e) => {
             if (!selectingLocation) return;
@@ -252,7 +220,7 @@ function Home() {
             const clickedPoint = { lat, lng };
             setDestination(clickedPoint);
   
-            getNearestParkingWalkingUsingService(clickedPoint, campusParkingData, permitType, (nearest) => {
+            getNearestParkingWalkingUsingService(clickedPoint, campusParkingData, permitType, (nearest: { position: { lat: number; lng: number; }; }) => {
               setNearestParking(nearest);
               if (map && nearest) traceWalkingRoute(map, nearest.position, clickedPoint);
             });
@@ -274,33 +242,49 @@ function Home() {
               nearestParking && nearestParking.name === lot.name;
 
             return (
-              <Marker
-                key={index}
-                position={lot.position}
-                label={isRecommended ? "Recommended" : lot.name}
-                icon={
-                  isRecommended
-                    ? "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
-                    : "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-                }
-              />
+              <React.Fragment key={index}>
+                <Marker
+                  position={lot.position}
+                  label={isRecommended ? "Recommended" : null}
+                  icon={
+                    isRecommended
+                      ? "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+                      : "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                  }
+                  onMouseOver={() => setHoveredParkLot(lot.id)}
+                  onMouseOut={() => setHoveredParkLot(null)}
+                />
+                { isRecommended  
+                    ? <ParkingLotInfo lot={lot} headerDisabled={false}/>
+                    : hoveredParkLot === lot.id 
+                      ? <ParkingLotInfo lot={lot} headerDisabled={true}/>
+                      : null
+                } 
+              </React.Fragment>              
             );
           })}
-          {location && selectedPlace && <LocationDetail {...selectedPlace} />}
-          {directions && (
+          {location && selectedPlace && 
+            <LocationDetail 
+              open={detailOpen}
+              selectedPlace={selectedPlace} 
+              onSetDestination={handleSetDestination} 
+              onClose={() => setDetailOpen(false)}
+            />
+          }
+          {/* {directions && (
             <InfoWindow position={destination!} pixelOffset={[0, -40]}>
               <Box>
                 <Typography variant="subtitle2">Route Found</Typography>
               </Box>
             </InfoWindow>
-          )}
+          )} */}
         </Map>
       </Box>
   
       {/* Search and Permit Selection Bar */}
       <Paper variant="elevation" elevation={2} sx={searchBarStyle}>
         <Grid container spacing={2} width="100%" display="flex" alignItems="center" justifyContent="flex-start">
-          <Grid item xs={8} sx={{ position: "relative" }}>
+          <Grid size={5}>
             <TextField
               value={searchValue}
               onChange={handleSearchChange}
@@ -309,71 +293,53 @@ function Home() {
               placeholder="Search a place"
               size="small"
             />
-            {suggestions.length > 0 && (
+            {suggestions.length > 0 && 
               <SuggestionsDropDownMenu
                 suggestions={suggestions}
-                location={location}
                 onItemClick={handleItemClick}
               />
-            )}
+            }
           </Grid>
-          <Grid item xs={2}>
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              disabled={!selectedPlace || !selectedPlace.location}
-              onClick={() => {
-                const loc = selectedPlace?.location;
-                if (!loc) return;
-                const clickedPoint = {
-                  lat: typeof loc.lat === "function" ? loc.lat() : loc.lat,
-                  lng: typeof loc.lng === "function" ? loc.lng() : loc.lng,
-                };
-                setDestination(clickedPoint);
-                getNearestParkingWalkingUsingService(clickedPoint, campusParkingData, permitType, (nearest) => {
-                  setNearestParking(nearest);
-                  if (map && nearest) {
-                    traceWalkingRoute(map, nearest.position, clickedPoint);
-                  }
-                });
-              }}
-            >
-              Set as Destination
-            </Button>
-          </Grid>
-          <Grid item xs={4}>
+          <Grid size={3}>
             <PermitSelector
               location={location}
               permitType={permitType}
               onSelectPermit={(type: string) => setPermitType(type)}
             />
           </Grid>
+          <Grid size={4}>
             <FormControlLabel
-            control={
-              <Switch
-                checked={selectingLocation}
-                onChange={(e) => setSelectingLocation(e.target.checked)}
-                color="secondary"
-              />
-            }
-            label="Select Location"
-            labelPlacement="start"
-          />
+                control={
+                  <Switch
+                    checked={selectingLocation}
+                    onChange={(e) => {
+                      if (selectedPlace) setSelectedPlace(undefined);
+                      setSelectingLocation(e.target.checked)
+                    }}
+                    color="primary"
+                  />
+                }
+                label="Select Location"
+                labelPlacement="end"
+            />
+          </Grid>
         </Grid>
       </Paper>
     </Box>
   );
 }
+
 // Popup detail component
-function LocationDetail(selectedPlace: PlaceData) {
-  const { name, location, address, rating, websiteURI } = selectedPlace || {};
-  if (!location) return null;
+function LocationDetail(props: {open: Boolean, selectedPlace: PlaceData, onSetDestination: () => void, onClose: () => void}) {
+  const { open, selectedPlace, onSetDestination, onClose } = props;
+  const { name, location, address, websiteURI } = selectedPlace || {};
+
   return (
     <>
-      <Marker position={location} />
-      <InfoWindow position={location} pixelOffset={[0, -40]}>
-        <Box display="flex" flexDirection="column" justifyContent="center" gap={2}>
+      <Marker position={location}/>
+      { open &&
+        <InfoWindow position={location} pixelOffset={[0, -40]} style={{padding: '0px'}} onCloseClick={onClose}>
+        <Box display="flex" flexDirection="column" justifyContent="center" gap={1}>
           <Box display="flex" justifyContent="center" alignItems="center">
             <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
               {name}
@@ -392,15 +358,16 @@ function LocationDetail(selectedPlace: PlaceData) {
               </a>
             </Box>
           )}
-          <Box display="flex" justifyContent="flex-start" alignItems="center" gap={2}>
-            <ThumbsUpDownIcon />
-            <Rating value={rating ? rating : 0} precision={0.5} readOnly />
+          <Box display="flex" justifyContent="flex-start" alignItems="center" paddingLeft={1}>
+            <Button color="primary" size="small" variant="contained" fullWidth onClick={onSetDestination}>
+              Set as Destination
+            </Button>
           </Box>
         </Box>
       </InfoWindow>
+    }
     </>
-  );
-
+  )
 }
 
 function PermitSelector(props: any) {
@@ -410,12 +377,16 @@ function PermitSelector(props: any) {
   const open = Boolean(anchorEl);
   const permitTypes = PERMIT_TYPES;
   let color = permitColors[permitType] || "#ffffff";
+
   const handleSelectPermit = (event: any, type: any) => {
     props.onSelectPermit && props.onSelectPermit(type);
     handleClose();
   };
+
   const handleOpen = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => setAnchorEl(event.currentTarget);
+
   const handleClose = () => setAnchorEl(null);
+
   const style = {
     color: "#ffffff",
     backgroundColor: color,
@@ -426,16 +397,18 @@ function PermitSelector(props: any) {
       color: color
     }
   };
+
   const renderMenuItem = permitTypes.map((option: any, index: number) => (
     <MenuItem key={index} onClick={(event) => handleSelectPermit(event, option.type)}>
       {option.text}
     </MenuItem>
   ));
+
   return (
     <>
       <Chip
         sx={style}
-        label={hovered ? "Select Permit" : permitText[permitType]}
+        label={hovered ? "Select Permit" : permitType}
         variant="outlined"
         clickable
         onClick={handleOpen}
@@ -474,15 +447,13 @@ const fetchPlacesFromInput = async (
             const placeSuggestion = suggestion.placePrediction.toPlace();
             await placeSuggestion.fetchFields({
                 fields: ["displayName", "formattedAddress", "location", "adrFormatAddress",
-                            "photos", "rating", "websiteURI"],
+                          "websiteURI"],
             });
 
             return {
                 name: placeSuggestion.displayName,
                 address: placeSuggestion.formattedAddress,
                 location: placeSuggestion.location,
-                photos: placeSuggestion.photos,
-                rating: placeSuggestion.rating,
                 websiteURI: placeSuggestion.websiteURI
             }
             
@@ -494,6 +465,7 @@ const fetchPlacesFromInput = async (
     return (
         suggestCollection
         .filter((suggest): suggest is PlaceData => suggest !== undefined)
+        .filter((suggest) => suggest.location !== null)
         .filter((suggest) => {
             const lat = suggest.location?.lat();
             const lng = suggest.location?.lng();
