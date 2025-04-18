@@ -7,9 +7,7 @@ build/
 
 # Ignore environment variables (sensitive data)
 .env
-.env.local
-.env.development
-.env.production
+.env*
 
 # Ignore logs and temporary files
 *.log
