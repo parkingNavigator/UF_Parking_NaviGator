@@ -21,7 +21,8 @@ import {
   InfoWindow,
   Map,
   useMap,
-  Marker
+  Marker,
+  isLatLngLiteral
 } from "@vis.gl/react-google-maps";
 import campusParkingData from "../../data/parkingData";
 import { getNearestParkingWalkingUsingService } from "../../utils/getNearestParking";
@@ -34,13 +35,6 @@ import { Switch, FormControlLabel } from "@mui/material";
 import { Button } from "@mui/material";
 import ParkingLotInfo from "../../components/ParkingLotInfo";
 import { useSnackbar } from "../../hooks/useSnackbar";
-
-// (Optional) Additional mapping from permit to color for styling chips.
-const permitColorMapping: { [key: string]: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" } = {
-  Green: "success",
-  Red: "error",
-  Brown: "warning"
-};
 
 const backgroundStyle = {
   position: "fixed",
@@ -75,7 +69,6 @@ function Home() {
   // State variables for parking and map interaction.
   const [destination, setDestination] = useState<{ lat: number; lng: number } | null>(null);
   const [nearestParking, setNearestParking] = useState<any>(null);
-  const [directions, setDirections] = useState<any>(null);
   const [permitType, setPermitType] = useState<string>("Green");
   const [searchValue, setSearchValue] = useState<string>("");
   const [suggestions, setSuggestions] = useState<(PlaceData | undefined)[]>([]);
@@ -95,7 +88,7 @@ function Home() {
     debouncedFetchSuggestions(value);
   };
 
-  const handleItemClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
+  const handleItemClick = (index: number) => {
     const selected = suggestions[index];
     setSelectedPlace(selected);
     setSuggestions([]);
@@ -122,9 +115,9 @@ function Home() {
       },
       (result, status) => {
         console.log("DirectionsService status:", status);
+        console.log("Result:", result);
         if (status === "OK") {
           showSnackbar('Route Found!', 'success');
-          setDirections(result);
         } else {
           console.error("Error fetching directions", status);
         }
@@ -154,8 +147,8 @@ function Home() {
     if (!loc) return;
 
     const clickedPoint = {
-      lat: typeof loc.lat === "function" ? loc.lat() : loc.lat,
-      lng: typeof loc.lng === "function" ? loc.lng() : loc.lng,
+      lat: loc.lat(),
+      lng: loc.lng(),
     };
 
     setDestination(clickedPoint);
@@ -207,9 +200,9 @@ function Home() {
       <Box width="100%">
         <Map
           style={{ width: "100vw", height: "100vh" }}
-          defaultCenter={location? location : initialLocation}
+          defaultCenter={toLatLngLiteral(location ?? initialLocation)}
           defaultZoom={16}
-          onClick={(e) => {
+          onClick={(e: any) => {
             if (!selectingLocation) return;
             let latLng;
             if (e.latLng) latLng = e.latLng;
@@ -376,7 +369,7 @@ function PermitSelector(props: any) {
   const permitTypes = PERMIT_TYPES;
   let color = permitColors[permitType] || "#ffffff";
 
-  const handleSelectPermit = (event: any, type: any) => {
+  const handleSelectPermit = (type: any) => {
     props.onSelectPermit && props.onSelectPermit(type);
     handleClose();
   };
@@ -397,7 +390,7 @@ function PermitSelector(props: any) {
   };
 
   const renderMenuItem = permitTypes.map((option: any, index: number) => (
-    <MenuItem key={index} onClick={(event) => handleSelectPermit(event, option.type)}>
+    <MenuItem key={index} onClick={() => handleSelectPermit(option.type)}>
       {option.text}
     </MenuItem>
   ));
@@ -486,6 +479,16 @@ const debounce = (callback: Function , delay: number) => {
             callback(...args);
         }, delay);
     }
+}
+
+function toLatLngLiteral(pos: google.maps.LatLng | google.maps.LatLngLiteral): google.maps.LatLngLiteral {
+  if (!isLatLngLiteral(pos)) {
+    return {
+      lat: pos.lat(),
+      lng: pos.lng(),
+    };
+  }
+  return pos;
 }
 
 

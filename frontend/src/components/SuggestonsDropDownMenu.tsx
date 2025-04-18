@@ -5,7 +5,7 @@ import React from "react";
 
 interface Props {
     suggestions: (PlaceData | undefined)[];
-    onItemClick: (event: React.MouseEvent<HTMLDivElement>, index: number) => void;
+    onItemClick: (index: number) => void;
 }
 
 /**
@@ -31,8 +31,7 @@ function SuggestionsDropDownMenu (props: Props) {
                 return (
                     <React.Fragment key={index}>
                         <ListItemButton
-                            onClick={(event) => onItemClick(event, index)}
-                            key={index}
+                            onClick={() => onItemClick(index)}
                         >
                         <ListItemIcon>
                             <LocationOn/>
