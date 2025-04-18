@@ -84,6 +84,7 @@ function Home() {
   const [selectingLocation, setSelectingLocation] = useState<boolean>(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [hoveredParkLot, setHoveredParkLot] = useState<number | null>();
+  const showSnackbar = useSnackbar();
 
   const map = useMap();
 
@@ -122,6 +123,7 @@ function Home() {
       (result, status) => {
         console.log("DirectionsService status:", status);
         if (status === "OK") {
+          showSnackbar('Route Found!', 'success');
           setDirections(result);
         } else {
           console.error("Error fetching directions", status);
