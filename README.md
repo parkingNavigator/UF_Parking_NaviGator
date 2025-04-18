@@ -31,11 +31,16 @@ parking spaces based on user preferences, permit types, and real-time availabili
    npm run dev
    ```
 
-### Adding API key into .env file in the directory
+#### Adding API key into .env file in the directory
    ```bash
    .env
 
    VITE_GOOGLE_MAPS_API_KEY=<your API key here>
+   VITE_BASE_URL=/
+
+   .env.production
+   VITE_GOOGLE_MAPS_API_KEY=<your API key here>
+   VITE_BASE_URL=/UF_Parking_NaviGator/
    ```
 #### Install Google map library
    ```bash
