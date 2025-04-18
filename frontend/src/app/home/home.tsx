@@ -113,9 +113,8 @@ function Home() {
         destination: new google.maps.LatLng(dest.lat, dest.lng),
         travelMode: google.maps.TravelMode.WALKING
       },
-      (result, status) => {
+      (_, status) => {
         console.log("DirectionsService status:", status);
-        console.log("Result:", result);
         if (status === "OK") {
           showSnackbar('Route Found!', 'success');
         } else {
