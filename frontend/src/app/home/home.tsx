@@ -221,7 +221,10 @@ function Home() {
             const lng = typeof latLng.lng === "function" ? latLng.lng() : latLng.lng;
             const clickedPoint = { lat, lng };
             setDestination(clickedPoint);
-  
+
+            // Remove location when click on the map
+            if (location !== null) setLocation(null);       
+
             getNearestParkingWalkingUsingService(clickedPoint, campusParkingData, permitType, (nearest: { position: { lat: number; lng: number; }; }) => {
               setNearestParking(nearest);
               if (map && nearest) traceWalkingRoute(map, nearest.position, clickedPoint);
@@ -247,7 +250,6 @@ function Home() {
               <React.Fragment key={index}>
                 <Marker
                   position={lot.position}
-                  label={isRecommended ? "Recommended" : null}
                   icon={
                     isRecommended
                       ? "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
@@ -265,21 +267,19 @@ function Home() {
               </React.Fragment>              
             );
           })}
-          {location && selectedPlace && 
+          
+          {/* Location marker */}
+          <Marker position={location? location : destination}/>
+    
+          {/* Location detail(searching place feature) */}
+          { selectedPlace && 
             <LocationDetail 
               open={detailOpen}
-              selectedPlace={selectedPlace} 
+              selectedPlace={selectedPlace}
               onSetDestination={handleSetDestination} 
               onClose={() => setDetailOpen(false)}
             />
           }
-          {/* {directions && (
-            <InfoWindow position={destination!} pixelOffset={[0, -40]}>
-              <Box>
-                <Typography variant="subtitle2">Route Found</Typography>
-              </Box>
-            </InfoWindow>
-          )} */}
         </Map>
       </Box>
   
@@ -311,18 +311,15 @@ function Home() {
           </Grid>
           <Grid size={4}>
             <FormControlLabel
-                control={
-                  <Switch
-                    checked={selectingLocation}
-                    onChange={(e) => {
-                      if (selectedPlace) setSelectedPlace(undefined);
-                      setSelectingLocation(e.target.checked)
-                    }}
-                    color="primary"
-                  />
-                }
-                label="Select Location"
-                labelPlacement="end"
+              label="Select Location"
+              labelPlacement="end"
+              control={
+                <Switch
+                  checked={selectingLocation}
+                  onChange={(e) => setSelectingLocation(e.target.checked)}
+                  color="primary"
+                />
+              }
             />
           </Grid>
         </Grid>
@@ -337,38 +334,37 @@ function LocationDetail(props: {open: Boolean, selectedPlace: PlaceData, onSetDe
   const { name, location, address, websiteURI } = selectedPlace || {};
 
   return (
-    <>
-      <Marker position={location}/>
+    <React.Fragment>
       { open &&
         <InfoWindow position={location} pixelOffset={[0, -40]} style={{padding: '0px'}} onCloseClick={onClose}>
-        <Box display="flex" flexDirection="column" justifyContent="center" gap={1}>
-          <Box display="flex" justifyContent="center" alignItems="center">
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-              {name}
-            </Typography>
-          </Box>
-          <Divider />
-          <Box display="flex" justifyContent="flex-start" alignItems="center" gap={2}>
-            <LocationOn />
-            <Typography variant="subtitle2">{address}</Typography>
-          </Box>
-          {websiteURI && (
-            <Box display="flex" justifyContent="flex-start" alignItems="center" gap={2}>
-              <LanguageIcon />
-              <a href={websiteURI} target="_blank" rel="noopener noreferrer">
-                {websiteURI}
-              </a>
+          <Box display="flex" flexDirection="column" justifyContent="center" gap={1}>
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                {name}
+              </Typography>
             </Box>
-          )}
-          <Box display="flex" justifyContent="flex-start" alignItems="center" paddingLeft={1}>
-            <Button color="primary" size="small" variant="contained" fullWidth onClick={onSetDestination}>
-              Set as Destination
-            </Button>
+            <Divider />
+            <Box display="flex" justifyContent="flex-start" alignItems="center" gap={2}>
+              <LocationOn />
+              <Typography variant="subtitle2">{address}</Typography>
+            </Box>
+            {websiteURI && (
+              <Box display="flex" justifyContent="flex-start" alignItems="center" gap={2}>
+                <LanguageIcon />
+                <a href={websiteURI} target="_blank" rel="noopener noreferrer">
+                  {websiteURI}
+                </a>
+              </Box>
+            )}
+            <Box display="flex" justifyContent="flex-start" alignItems="center" paddingLeft={1}>
+              <Button color="primary" size="small" variant="contained" fullWidth onClick={onSetDestination}>
+                Set as Destination
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      </InfoWindow>
-    }
-    </>
+        </InfoWindow>
+      }
+    </React.Fragment>
   )
 }
 
