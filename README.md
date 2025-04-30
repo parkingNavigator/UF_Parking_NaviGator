@@ -3,6 +3,7 @@
 ## 🚀 Project Overview
 Developing an intelligent parking assistant that streamlines the process of finding 
 parking spaces based on user preferences, permit types, and real-time availability.
+The website is hosted at: https://parkingnavigator.github.io/UF_Parking_NaviGator/
 
 ## 📌 Features
 - 🗺️ **Map Integration** - Uses Google Maps or Apple Maps to show parking locations.
